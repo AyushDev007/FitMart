@@ -1,6 +1,5 @@
 <div align="center">
   <img src="https://raw.githubusercontent.com/parthbuilds-community/FitMart/main/client/public/logo.png" alt="FitMart" width="100"/>
-</div>
 
 # FitMart
 
@@ -28,7 +27,7 @@
 [![GitHub Issues](https://img.shields.io/github/issues/parthbuilds-community/FitMart?style=for-the-badge&logo=github)](https://github.com/parthbuilds-community/FitMart/issues)
 [![GitHub PRs](https://img.shields.io/github/issues-pr/parthbuilds-community/FitMart?style=for-the-badge&logo=github)](https://github.com/parthbuilds-community/FitMart/pulls)
 
-<br/>
+</div>
 
 ---
 
