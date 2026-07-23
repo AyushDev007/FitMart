@@ -551,6 +551,11 @@ APP_BASE_URL=http://localhost:5173
 MONGO_URI=mongodb://localhost:27017
 MONGO_DB=FitMart
 
+# =========================================
+# DNS Configuration 
+# =========================================
+DNS_SERVERS=8.8.8.8,8.8.4.4
+
 
 # =========================================
 # Admin Configuration
@@ -641,6 +646,30 @@ APP_BASE_URL=http://localhost:5173
 1. Create a free account at [RapidAPI](https://rapidapi.com/)
 2. Subscribe to the [ExerciseDB API](https://rapidapi.com/justin-thewebdev/api/exercisedb) (free tier available)
 3. Copy your `X-RapidAPI-Key` and set it as `RAPIDAPI_KEY`
+
+#### MongoDB Atlas SRV lookup fails with `querySrv ECONNREFUSED`
+
+On some Windows environments, Node.js may incorrectly use a local DNS resolver, causing MongoDB Atlas SRV lookups to fail.
+
+If you encounter:
+
+```text
+querySrv ECONNREFUSED _mongodb._tcp.<cluster>.mongodb.net
+```
+
+set a custom DNS server in your `.env`:
+
+```env
+DNS_SERVERS=8.8.8.8,8.8.4.4
+```
+
+or
+
+```env
+DNS_SERVERS=1.1.1.1,1.0.0.1
+```
+
+Restart the server after updating the environment variable.
 
 #### Setting Up Transactional Email (Optional)
 
