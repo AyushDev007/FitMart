@@ -96,10 +96,44 @@ router.post('/', upload.single('screenshot'), async (req, res) => {
 });
 
 // ── GET /api/bugs — admin only ────────────────────────────────────────────
-router.get('/', verifyFirebaseToken, verifyAdmin, async (_req, res) => {
+router.get('/', verifyFirebaseToken, verifyAdmin, async (req, res) => {
   try {
-    const bugs = await Bug.find().sort({ createdAt: -1 }).limit(500);
-    res.json({ ok: true, bugs });
+    const page = Math.max(1, parseInt(req.query.page) || 1);
+    const limit = Math.min(50, Math.max(1, parseInt(req.query.limit) || 20));
+    const skip = (page - 1) * limit;
+
+    // Status filter
+    const status = req.query.status;
+    if (status && !['open', 'in-progress', 'resolved'].includes(status)) {
+      return res.status(400).json({ error: 'Invalid status. Must be one of: open, in-progress, resolved' });
+    }
+
+    // Search filter (case-insensitive on title and description)
+    const search = req.query.search;
+    const filter = {};
+    if (status) filter.status = status;
+    if (search && search.trim()) {
+      const regex = { $regex: search.trim(), $options: 'i' };
+      filter.$or = [
+        { title: regex },
+        { description: regex },
+      ];
+    }
+
+    const [bugs, total] = await Promise.all([
+      Bug.find(filter).sort({ createdAt: -1 }).skip(skip).limit(limit),
+      Bug.countDocuments(filter),
+    ]);
+
+    res.json({
+      ok: true,
+      bugs,
+      pagination: {
+        page,
+        limit,
+        total,
+      },
+    });
   } catch (err) {
     console.error('Error fetching bugs:', err);
     res.status(500).json({ error: 'Failed to fetch bugs' });
