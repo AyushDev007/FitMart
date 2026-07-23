@@ -220,7 +220,7 @@ router.post("/demo-success", async (req, res) => {
     } catch (createErr) {
       if (createErr.message === "Cart is empty") {
          // Still clear any empty cart just in case
-         await Cart.findOneAndUpdate({ userId }, { $set: { items: [] } }, { new: true });
+         await Cart.findOneAndUpdate({ userId }, { $set: { items: [] } }, { returnDocument: 'after' });
       }
       return res.status(400).json({ error: createErr.message });
     }

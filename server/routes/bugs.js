@@ -148,7 +148,7 @@ router.patch('/:id', verifyFirebaseToken, verifyAdmin, async (req, res) => {
     if (!['open', 'in-progress', 'resolved'].includes(status))
       return res.status(400).json({ error: 'Invalid status' });
 
-    const bug = await Bug.findByIdAndUpdate(req.params.id, { status }, { new: true });
+    const bug = await Bug.findByIdAndUpdate(req.params.id, { status }, { returnDocument: 'after' });
     if (!bug) return res.status(404).json({ error: 'Not found' });
     res.json({ ok: true, bug });
   } catch (err) {

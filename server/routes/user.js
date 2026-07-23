@@ -65,7 +65,7 @@ router.post("/login", async (req, res) => {
       profile = await UserProfile.findOneAndUpdate(
         { userId },
         { $set: { email: firebaseEmail, name: displayName || profile.name } },
-        { new: true }
+        { returnDocument: 'after' }
       );
     }
 
@@ -130,7 +130,7 @@ router.post("/use-discount", async (req, res) => {
     const profile = await UserProfile.findOneAndUpdate(
       { userId, discountUsed: false },   // only update if not already used
       { $set: { discountUsed: true } },
-      { new: true }
+      { returnDocument: 'after' }
     );
 
     if (!profile) {
@@ -214,7 +214,7 @@ router.put("/profile/:userId", async (req, res) => {
     const profile = await UserProfile.findOneAndUpdate(
       { userId },
       { $set: update },
-      { upsert: true, new: true }
+      { upsert: true, returnDocument: 'after' }
     );
 
     res.json(profile);
@@ -261,7 +261,7 @@ router.post("/upload-photo/:userId", verifyFirebaseToken, upload.single("photo")
       const profile = await UserProfile.findOneAndUpdate(
         { userId },
         { $set: { photoURL } },
-        { upsert: true, new: true }
+        { upsert: true, returnDocument: 'after' }
       );
 
       res.json({ success: true, photoURL, profile });

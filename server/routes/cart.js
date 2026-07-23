@@ -52,7 +52,7 @@ async function adjustReserved(productId, delta, session = null) {
     filter,
     { $inc: { reserved: delta } },
     {
-      new: true,
+      returnDocument: 'after',
       ...(session ? { session } : {}),
     }
   );
