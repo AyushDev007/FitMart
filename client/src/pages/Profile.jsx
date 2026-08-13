@@ -1,5 +1,5 @@
 // src/pages/Profile.jsx
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { auth } from "../auth/firebase";
 import { onAuthStateChanged } from "firebase/auth";
@@ -12,6 +12,7 @@ import {
   getTransactionIcon,
 } from "../utils/rewardsUtils";
 import Navbar from "../components/Navbar";
+import PullToRefresh from "../components/PullToRefresh";
 
 const API = import.meta.env.VITE_API_URL || "http://localhost:5000";
 
@@ -193,31 +194,41 @@ const [rewardsError, setRewardsError] = useState("");
     }
   }, [activeTab]);
 
+  // Fetch orders — hoisted out of the effect so pull-to-refresh can reuse it.
+  // `silent` skips the full-panel loading state so the list stays visible
+  // while the pull-to-refresh spinner is already showing.
+  const fetchOrders = useCallback(async ({ silent = false } = {}) => {
+    const user = auth.currentUser;
+    if (!user) return;
+
+    if (!silent) setLoadingOrders(true);
+    try {
+      const headers = await getAuthHeaders();
+      const res = await fetch(`${API}/api/orders/${user.uid}`, { headers, credentials: "include" });
+      if (!res.ok) throw new Error("Failed to load orders");
+      const data = await res.json();
+      setOrders(Array.isArray(data) ? data : []);
+      setError(null);
+    } catch (err) {
+      setError(err.message);
+      setOrders([]);
+    } finally {
+      if (!silent) setLoadingOrders(false);
+    }
+  }, []);
+
+  // Stable identity so PullToRefresh doesn't rebind its touch listeners
+  // on every render.
+  const handlePullRefresh = useCallback(
+    () => fetchOrders({ silent: true }),
+    [fetchOrders]
+  );
+
   // Fetch orders when orders tab is active
   useEffect(() => {
     if (activeTab !== "orders") return;
-    
-    const fetchOrders = async () => {
-      const user = auth.currentUser;
-      if (!user) return;
-      
-      setLoadingOrders(true);
-      try {
-        const headers = await getAuthHeaders();
-        const res = await fetch(`${API}/api/orders/${user.uid}`, { headers, credentials: "include" });
-        if (!res.ok) throw new Error("Failed to load orders");
-        const data = await res.json();
-        setOrders(Array.isArray(data) ? data : []);
-      } catch (err) {
-        setError(err.message);
-        setOrders([]);
-      } finally {
-        setLoadingOrders(false);
-      }
-    };
-
     fetchOrders();
-  }, [activeTab]);
+  }, [activeTab, fetchOrders]);
 
   const handleSaveProfile = async () => {
     const user = auth.currentUser;
@@ -525,6 +536,7 @@ const [rewardsError, setRewardsError] = useState("");
 
         {/* ── ORDERS TAB ── */}
         {activeTab === "orders" && (
+          <PullToRefresh onRefresh={handlePullRefresh}>
           <div>
             <p className="text-xs tracking-[0.2em] uppercase text-stone-400 mb-5">Order history</p>
 
@@ -591,6 +603,7 @@ const [rewardsError, setRewardsError] = useState("");
               </div>
             )}
           </div>
+          </PullToRefresh>
         )}
       </div>
 
